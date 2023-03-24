@@ -1,0 +1,13 @@
+main.c:374:13:MX_GPIO_Init	56	static
+main.c:65:6:RF_ShiftRegs	24	static
+main.c:76:6:NRF_cs	8	static
+main.c:90:6:NRF_ce	8	static
+main.c:109:6:NRF_write_reg	40	static
+main.c:120:9:NRF_read_reg	32	static
+main.c:137:6:NRF_burst_write	32	static
+main.c:150:6:NRF_initialization	8	static
+main.c:194:6:NRF_Transmit	24	static
+main.c:407:6:Error_Handler	0	static,ignoring_inline_asm
+main.c:336:13:MX_SPI2_Init	8	static
+main.c:292:6:SystemClock_Config	88	static
+main.c:229:5:main	152	static
