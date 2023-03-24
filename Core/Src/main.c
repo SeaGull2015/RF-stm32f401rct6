@@ -22,13 +22,16 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdio.h"
+#include "limits.h"
+#include "stdbool.h"
 #include "NRF24L01_macros.h"
 #include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define inputSize (160) // wave your hands in the air like you don't care
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -221,6 +224,102 @@ void NRF_Transmit(uint8_t *data){
 
 
 }
+
+char parseResult[] = "\nlatitude is .. ........, longitude is ... ........, height is ......... M\r\n";
+char permParseResult[] = "\nlatitude is .. ........, longitude is ... ........, height is ......... M\r\n";
+
+int parseGNSS(uint8_t input[inputSize]){ // we want to find $GPGGA because it contains height, then parse it to spit out the longitude, latitude, height.
+	int64_t start = INT_MAX - 1;
+	int64_t temp_iter;
+	char currentProtocol[6];
+	bool identical = true;
+	for (int i = 0; i < inputSize; i++){
+		if (input[i] == '$'){
+			for (int j = i; (j < (i + 6)) && (j < inputSize); j++){
+				currentProtocol[j-i] = input[j];
+				temp_iter = j;
+			}
+			if (temp_iter >= inputSize) printf("\nmoved over the edge of the input, trying to find the $GPwhatever, j >= inputSize\r\n");
+			for (int j = 0; j < 6; j++){
+				if (currentProtocol[j] != "$GPGGA"[j]) identical = false;
+			}
+			if (identical) {
+				start = i;
+				break;
+			}
+			else identical = true;
+		}
+	}
+	// parsing
+	if (start == INT_MAX - 1){
+		printf("\nparsing failed, start == INT_MAX - 1\r\n");
+		return 10;
+	}
+	int64_t pointer = start;
+	while (input[pointer] != ',' && (pointer < inputSize)) {pointer++;} // skip $GPGGA,
+	pointer++;
+	while (input[pointer] != ',' && (pointer < inputSize)) {pointer++;} // skip time,
+	pointer++;
+
+	if (input[pointer] == ',') {} // latitude is missing
+	else { // latitude
+		parseResult[13] = input[pointer++]; // this is bad, because no && (pointer < inputSize), but ok
+		parseResult[14] = input[pointer++];
+		parseResult[16] = input[pointer++];
+		parseResult[17] = input[pointer++];
+		parseResult[18] = input[pointer++];
+		parseResult[19] = input[pointer++];
+		parseResult[20] = input[pointer++];
+		parseResult[21] = input[pointer++];
+		parseResult[22] = input[pointer++];
+	}
+	pointer++;
+	//printf("%s\n\n", parseResult); //debug
+	if (input[pointer] != ',') { // make sure that north/south isn't missing
+		parseResult[23] = input[pointer];
+	}
+	//printf("%s\n\n", parseResult);//debug
+	pointer += 2;
+
+	if (input[pointer] == ',') {} // longitude is missing
+	else { // latitude
+		parseResult[39] = input[pointer++];
+		parseResult[40] = input[pointer++];
+		parseResult[41] = input[pointer++];
+		parseResult[43] = input[pointer++];
+		parseResult[44] = input[pointer++];
+		parseResult[45] = input[pointer++];
+		parseResult[46] = input[pointer++];
+		parseResult[47] = input[pointer++];
+		parseResult[48] = input[pointer++];
+		parseResult[49] = input[pointer++];
+	}
+	pointer++;
+	if (input[pointer] != ',') { // make sure that hemisphere isn't missing
+		parseResult[50] = input[pointer++];
+	}
+	pointer++;
+
+	while (input[pointer] != ',' && (pointer < inputSize)) {pointer++;} // skip mode,
+	pointer++;
+	while (input[pointer] != ',' && (pointer < inputSize)) {pointer++;} // skip number of used sattelites,
+	pointer++;
+	while (input[pointer] != ',' && (pointer < inputSize)) {pointer++;} // skip HDOP, whatever it is
+	pointer++;
+	// height
+	for (int i = pointer; ((i - pointer) < 9) && (i < inputSize); i++){ // pointer+1 because I wanna to put ">" in there if there are too many symbols.
+		if (input[i] == ',') break;
+		parseResult[63 + i - pointer] = input[i];
+		//printf(" i is %u input[i] is %c\r\n", i, input[i]); //debug
+	}
+
+	if (pointer >= inputSize){
+		printf("\nparsing failed, pointer >= inputSize\r\n");
+		return 20;
+	}
+
+	return 0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -260,6 +359,7 @@ int main(void)
   	HAL_SPI_Transmit(&hspi2, &regD, 1, 10000);
   	latch();*/
   NRF_initialization();
+  uint8_t input[inputSize];
   //NRF_write_reg(NRF_REG_RF_CH, NRF_CHANEL);
   /* USER CODE END 2 */
 
@@ -273,13 +373,21 @@ int main(void)
 	  //HAL_Delay(3000);
 	  uint8_t str[100];
 	  uint8_t hello_str[32] = "Hello";
-	  for(uint8_t i=0;i<0x1D;i++){
+	  /*for(uint8_t i=0;i<0x1D;i++){
 		  uint8_t current_value = NRF_read_reg(i);
 		  snprintf(str, sizeof(str), "adr%X = %X ", i, current_value);
 		  CDC_Transmit_FS(str, strlen(str));
 		  HAL_Delay(300);
 		  NRF_Transmit(hello_str);
+	  }*/
+	  HAL_UART_Receive(&huart2, input, sizeof(input)/sizeof(input[0]), 1000);
+	  int j = parseGNSS(input);
+	  printf("%s\n\n", parseResult);
+	  for (int i = 0; i < sizeof(permParseResult)/sizeof(permParseResult[0]); i++){
+		  parseResult[i] = permParseResult[i];
 	  }
+	  NRF_Transmit(parseResult);
+	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -434,7 +542,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+int __io_getchar(void){
+	uint8_t data;
+	HAL_UART_Receive(&huart2, &data, sizeof(data), 1000);
+	return data;
+}
 /* USER CODE END 4 */
 
 /**

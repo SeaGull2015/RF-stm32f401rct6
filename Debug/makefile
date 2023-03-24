@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (9-2020-q2-update)
+# Toolchain: GNU Tools for STM32 (10.3-2021.10)
 ################################################################################
 
 -include ../makefile.init
@@ -47,6 +47,9 @@ BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ART
 EXECUTABLES += \
 Radio_transmit_ok2.elf \
 
+MAP_FILES += \
+Radio_transmit_ok2.map \
+
 SIZE_OUTPUT += \
 default.size.stdout \
 
@@ -56,9 +59,6 @@ Radio_transmit_ok2.list \
 OBJCOPY_HEX += \
 Radio_transmit_ok2.hex \
 
-OBJCOPY_BIN += \
-Radio_transmit_ok2.bin \
-
 
 # All Target
 all: main-build
@@ -67,8 +67,8 @@ all: main-build
 main-build: Radio_transmit_ok2.elf secondary-outputs
 
 # Tool invocations
-Radio_transmit_ok2.elf: $(OBJS) $(USER_OBJS) C:\Users\User\STM32CubeIDE\workspace_1.8.0\Radio_transmit_downCLK\Radio_transmit\STM32F401RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Radio_transmit_ok2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\STM32CubeIDE\workspace_1.8.0\Radio_transmit_downCLK\Radio_transmit\STM32F401RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Radio_transmit_ok2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Radio_transmit_ok2.elf Radio_transmit_ok2.map: $(OBJS) $(USER_OBJS) E:\Software\CubeIDEWS\RF\Radio_transmit_downCLK\Radio_transmit\STM32F401RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Radio_transmit_ok2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Software\CubeIDEWS\RF\Radio_transmit_downCLK\Radio_transmit\STM32F401RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Radio_transmit_ok2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -87,17 +87,12 @@ Radio_transmit_ok2.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEP
 	@echo 'Finished building: $@'
 	@echo ' '
 
-Radio_transmit_ok2.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "Radio_transmit_ok2.bin"
-	@echo 'Finished building: $@'
-	@echo ' '
-
 # Other Targets
 clean:
-	-$(RM) Radio_transmit_ok2.bin Radio_transmit_ok2.elf Radio_transmit_ok2.hex Radio_transmit_ok2.list default.size.stdout
+	-$(RM) Radio_transmit_ok2.elf Radio_transmit_ok2.hex Radio_transmit_ok2.list Radio_transmit_ok2.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX) $(OBJCOPY_BIN)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
