@@ -383,10 +383,10 @@ int main(void)
 	  HAL_UART_Receive(&huart2, input, sizeof(input)/sizeof(input[0]), 1000);
 	  int j = parseGNSS(input);
 	  printf("%s\n\n", parseResult);
+	  NRF_Transmit(parseResult);
 	  for (int i = 0; i < sizeof(permParseResult)/sizeof(permParseResult[0]); i++){
 		  parseResult[i] = permParseResult[i];
 	  }
-	  NRF_Transmit(parseResult);
 	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
